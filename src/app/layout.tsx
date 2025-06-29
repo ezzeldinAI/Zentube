@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "w-[100vw] h-[100vh] flex items-center justify-center",
+          "",
           inter.className,
         )}
       >
