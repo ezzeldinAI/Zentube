@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+
 import { Inter } from "next/font/google";
+
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +24,7 @@ export default function RootLayout({
       <body
         className={cn(
           "w-[100vw] h-[100vh] flex items-center justify-center",
-          inter.className
+          inter.className,
         )}
       >
         {children}
