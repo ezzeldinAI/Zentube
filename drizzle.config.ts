@@ -6,6 +6,7 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
+    // eslint-disable-next-line node/no-process-env
     url: process.env.DATABASE_URL!,
   },
 });

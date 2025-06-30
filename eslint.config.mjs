@@ -29,7 +29,12 @@ export default antfu(
         "error",
         {
           case: "kebabCase",
-          ignore: ["README.md"],
+          ignore: [
+            "README.md",
+            "0000_snapshot.json",
+            "_journal.json",
+            "0000_youthful_tattoo.sql",
+          ],
         },
       ],
     },
