@@ -4,10 +4,12 @@ import {
   ClerkProvider,
 } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
-import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TRPCProvider } from "@/trpc/client";
+
+import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,7 +35,10 @@ export default function RootLayout({
           )}
         >
           <TRPCProvider>
-            {children}
+            <NuqsAdapter>
+
+              {children}
+            </NuqsAdapter>
           </TRPCProvider>
         </body>
       </html>
