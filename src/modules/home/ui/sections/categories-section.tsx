@@ -1,18 +1,22 @@
 "use client";
 
-import { useQueryState } from "nuqs";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { FilterCarousel } from "@/components/filter-carousel";
 import { trpc } from "@/trpc/client";
 
-export function CategoriesSection() {
+type CategoriesSectionProps = {
+  categoryId?: string;
+};
+
+export function CategoriesSection({ categoryId }: CategoriesSectionProps) {
   return (
     <Suspense fallback={<CategoriesSkeleton />}>
       {/* Improve the ErrorBoundary fallback to be more elegant */}
       <ErrorBoundary fallback={<p>Error</p>}>
-        <CategoriesSectionSuspense />
+        <CategoriesSectionSuspense categoryId={categoryId} />
       </ErrorBoundary>
     </Suspense>
   );
@@ -22,8 +26,10 @@ function CategoriesSkeleton() {
   return <FilterCarousel isLoading data={[]} onSelect={() => {}} />;
 }
 
-function CategoriesSectionSuspense() {
-  const [currentFilterId, setCurrentFilterId] = useQueryState("filter_id", { defaultValue: "" });
+function CategoriesSectionSuspense({ categoryId }: {
+  categoryId?: string;
+}) {
+  const router = useRouter();
   const [categories] = trpc.categories.getMany.useSuspenseQuery();
 
   const data = categories.map(({ name, id }) => ({
@@ -31,15 +37,18 @@ function CategoriesSectionSuspense() {
     label: name,
   }));
 
-  return (
-    <>
-      <FilterCarousel
-        onSelect={(value) => {
-          setCurrentFilterId(value);
-        }}
-        value={currentFilterId}
-        data={data}
-      />
-    </>
-  );
+  function onSelect(value: string | null) {
+    const url = new URL(window.location.href);
+
+    if (value) {
+      url.searchParams.set("categoryId", value);
+    }
+    else {
+      url.searchParams.delete("categoryId");
+    }
+
+    router.push(url.toString());
+  }
+
+  return <FilterCarousel onSelect={onSelect} value={categoryId} data={data} />;
 }
