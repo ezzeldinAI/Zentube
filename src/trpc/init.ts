@@ -9,8 +9,14 @@ import { usersTable } from "@/db/schema";
 import { ratelimit } from "@/lib/ratelimit";
 
 export const createTRPCContext = cache(async () => {
-  const { userId } = await auth();
-  return { clerkUserId: userId };
+  try {
+    const { userId } = await auth();
+    return { clerkUserId: userId };
+  }
+  catch {
+    // If Clerk is not available (e.g. during static build), return empty context
+    return { clerkUserId: null };
+  }
 });
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
