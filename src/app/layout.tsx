@@ -4,10 +4,10 @@ import {
   ClerkProvider,
 } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { cn } from "@/lib/utils";
 import { TRPCProvider } from "@/trpc/client";
+import { Toaster } from "zentube/ui/sonner";
 
 import "./globals.css";
 
@@ -35,10 +35,8 @@ export default function RootLayout({
           )}
         >
           <TRPCProvider>
-            <NuqsAdapter>
-
-              {children}
-            </NuqsAdapter>
+            <Toaster richColors />
+            {children}
           </TRPCProvider>
         </body>
       </html>

@@ -1,10 +1,14 @@
-import { pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 
 export const usersTable = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   clerkId: text("clerk_id").unique().notNull(),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
+  role: userRoleEnum("role").notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, t => [uniqueIndex("clerk_id_idx").on(t.clerkId)]);
@@ -16,3 +20,36 @@ export const categoriesTable = pgTable("categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, t => [uniqueIndex("name_idx").on(t.name)]);
+
+export const videosTable = pgTable("videos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  description: text("description"),
+  userId: uuid("user_id").references(() => usersTable.id, {
+    onDelete: "cascade",
+  }).notNull(),
+  categoryId: uuid("category_id").references(() => categoriesTable.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const videoRelations = relations(videosTable, ({ one }) => ({
+  usersTable: one(usersTable, {
+    fields: [videosTable.userId],
+    references: [usersTable.id],
+  }),
+  categoriesTable: one(categoriesTable, {
+    fields: [videosTable.categoryId],
+    references: [categoriesTable.id],
+  }),
+}));
+
+export const userRelations = relations(usersTable, ({ many }) => ({
+  videosTable: many(videosTable),
+}));
+
+export const categoryRelations = relations(usersTable, ({ many }) => ({
+  videosTable: many(videosTable),
+}));
