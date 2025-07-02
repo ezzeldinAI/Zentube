@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { UserCircleIcon } from "lucide-react";
+import { ClapperboardIcon, UserCircleIcon } from "lucide-react";
 
 import { Button } from "zentube/ui/button";
 
@@ -10,8 +10,16 @@ export function AuthButton() {
     <>
 
       <SignedIn>
-        <UserButton />
-        {/* TODO: Add menu items for Studio and User Profile */}
+        <UserButton>
+          <UserButton.MenuItems>
+            {/* TODO: Add menu items for User Profile */}
+            <UserButton.Link
+              label="Studio"
+              href="/studio"
+              labelIcon={<ClapperboardIcon className="size-4" />}
+            />
+          </UserButton.MenuItems>
+        </UserButton>
       </SignedIn>
 
       <SignedOut>

@@ -5,7 +5,6 @@ import { Sidebar, SidebarContent } from "zentube/ui/sidebar";
 
 export function HomeSidebar() {
   return (
-
     <Sidebar className="pt-16 z-40 border" collapsible="icon">
       <SidebarContent className="bg-background">
         <MainSection />
