@@ -1,8 +1,10 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { LoaderIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { ResponsiveModal } from "@/components/responsive-modal";
+import { StudioUploader } from "@/modules/studio/ui/components/studio-uploader";
 import { trpc } from "@/trpc/client";
 import { Button } from "zentube/ui/button";
 
@@ -22,9 +24,14 @@ export function StudioUploadModal() {
   });
 
   return (
-    <Button variant="secondary" onClick={() => create.mutate()} disabled={create.isPending} isLoading={create.isPending}>
-      <PlusIcon className="size-4" />
-      Create
-    </Button>
+    <>
+      <ResponsiveModal title="Upload a video" open={!!create.data?.url} onOpenChange={() => create.reset()}>
+        { create.data?.url ? <StudioUploader endpoint={create.data.url} onSuccess={() => create.reset()} /> : <LoaderIcon />}
+      </ResponsiveModal>
+      <Button variant="secondary" onClick={() => create.mutate()} disabled={create.isPending} isLoading={create.isPending}>
+        <PlusIcon className="size-4" />
+        Create
+      </Button>
+    </>
   );
 }
