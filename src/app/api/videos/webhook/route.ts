@@ -30,14 +30,14 @@ export async function POST(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const payload = await request.json();
+  const payload = await request.json() as WebhookEvent;
   const body = JSON.stringify(payload);
 
   mux.webhooks.verifySignature(body, {
     "mux-signature": muxSignature,
   }, SIGNING_SECRET);
 
-  switch (payload.type as WebhookEvent["type"]) {
+  switch (payload.type) {
     case "video.asset.created": {
       const data = payload.data as VideoAssetCreatedWebhookEvent["data"];
 
@@ -110,19 +110,18 @@ export async function POST(request: Request) {
         asset_id: string;
       };
 
-      console.warn("Track ready");
-
       const assetId = data.asset_id;
       const trackId = data.id;
       const status = data.status;
 
+      console.warn(`Track ready | status: ${status}`);
       if (!assetId) {
         return new Response("Missing asset ID", { status: 400 });
       }
 
       await db.update(videosTable).set({
         muxTrackId: trackId,
-        muxStatus: status,
+        muxTrackStatus: status,
       }).where(eq(videosTable.muxAssetId, assetId));
 
       break;

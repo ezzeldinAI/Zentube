@@ -1,5 +1,10 @@
 import { relations } from "drizzle-orm";
 import { integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
 
 export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 
@@ -49,6 +54,10 @@ export const videosTable = pgTable("videos", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const videoInsertSchema = createInsertSchema(videosTable);
+export const videoUpdateSchema = createUpdateSchema(videosTable);
+export const videoSelectSchema = createSelectSchema(videosTable);
 
 export const videoRelations = relations(videosTable, ({ one }) => ({
   usersTable: one(usersTable, {

@@ -29,7 +29,7 @@ export function StudioSidebarHeader() {
           <UserAvatar
             imageUrl={user?.imageUrl}
             name={user?.fullName ?? "User"}
-            className="size-[112px] hover:opacity-80 transition-opacity ring-3 ring-sky-500/50 ring-offset-2"
+            className="size-[112px] hover:opacity-80 ring-2 ring-black/85 ring-offset-0 hover:ring-offset-2 hover:ring-sky-500/50 transition-all"
           />
         </Link>
 
