@@ -8,6 +8,7 @@ import type {
 
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
@@ -65,17 +66,33 @@ export async function POST(request: Request) {
         return new Response("Missing playback ID", { status: 400 });
       }
 
-      const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
-      const previewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
+      const tempThumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+      const tempPreviewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
 
+      const utapi = new UTApi();
+      const [uploadedThumbnail, uploadedPreview] = await utapi.uploadFilesFromUrl([
+        tempThumbnailUrl,
+        tempPreviewUrl,
+      ]);
       const duration = data.duration ? Math.round(data.duration * 1000) : 0;
+
+      if (!uploadedThumbnail.data || !uploadedPreview.data) {
+        return new Response("Failed to upload thumbnail or preview", {
+          status: 500,
+        });
+      }
+
+      const { key: thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
+      const { key: previewKey, url: previewUrl } = uploadedPreview.data;
 
       await db.update(videosTable).set({
         muxStatus: data.status,
         muxPlaybackId: playbackId,
         muxAssetId: data.id,
         thumbnailUrl,
+        thumbnailKey,
         previewUrl,
+        previewKey,
         duration,
       }).where(eq(videosTable.muxUploadId, data.upload_id));
 
@@ -114,7 +131,7 @@ export async function POST(request: Request) {
       const trackId = data.id;
       const status = data.status;
 
-      console.warn(`Track ready | status: ${status}`);
+      // console.warn(`Track ready | status: ${status}`);
       if (!assetId) {
         return new Response("Missing asset ID", { status: 400 });
       }

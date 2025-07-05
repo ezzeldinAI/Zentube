@@ -29,7 +29,7 @@ async function main() {
 
     await db.insert(categoriesTable).values(values);
 
-    console.warn("Categores seeded successfully!");
+    // console.warn("Categories seeded successfully!");
   }
   catch (error) {
     console.error("Error seeding categories: ", error);

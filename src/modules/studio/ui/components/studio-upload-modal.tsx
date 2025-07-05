@@ -26,6 +26,18 @@ export function StudioUploadModal() {
     },
   });
 
+  const remove = trpc.videos.remove.useMutation({
+    onSuccess: () => {
+      // refreshes the page when the button is clicked and successfully creates a video
+      toast.success("Video Removed");
+      utils.studio.getMany.invalidate();
+    },
+    onError: () => {
+      // toast.error("Something went wrong");
+      toast.error("Something went wrong");
+    },
+  });
+
   function onSuccess() {
     if (!create.data?.video.id)
       return;
@@ -36,7 +48,14 @@ export function StudioUploadModal() {
 
   return (
     <>
-      <ResponsiveModal title="Upload a video" open={!!create.data?.url} onOpenChange={() => create.reset()}>
+      <ResponsiveModal
+        title="Upload a video"
+        open={!!create.data?.url}
+        onOpenChange={() => {
+          create.reset();
+          remove.mutate({ id: create.data!.video.id });
+        }}
+      >
         { create.data?.url ? <StudioUploader endpoint={create.data.url} onSuccess={onSuccess} /> : <LoaderIcon />}
       </ResponsiveModal>
       <Button variant="secondary" onClick={() => create.mutate()} disabled={create.isPending} isLoading={create.isPending}>

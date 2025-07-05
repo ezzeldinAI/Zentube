@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       const { data: { id, first_name, last_name, image_url } } = evt;
       await db.insert(usersTable).values({
         clerkId: id,
+        isAdmin: false,
         name: `${first_name} ${last_name !== null ? last_name : ""}`,
         imageUrl: image_url,
       });
