@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -71,6 +71,39 @@ export const studioRouter = createTRPCRouter({
     return {
       items,
       nextCursor,
+    };
+  }),
+  getManyPaginated: protectedProcedure.input(
+    z.object({
+      page: z.number().min(0),
+      pageSize: z.number().min(1).max(100),
+    }),
+  ).query(async ({ ctx, input }) => {
+    const { page, pageSize } = input;
+    const { id: userId } = ctx.user;
+    const offset = page * pageSize;
+
+    // Get total count
+    const [{ value: total }] = await db
+      .select({ value: count() })
+      .from(videosTable)
+      .where(eq(videosTable.userId, userId));
+
+    // Get paginated data
+    const items = await db
+      .select()
+      .from(videosTable)
+      .where(eq(videosTable.userId, userId))
+      .orderBy(desc(videosTable.updatedAt), desc(videosTable.id))
+      .limit(pageSize)
+      .offset(offset);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
     };
   }),
 });

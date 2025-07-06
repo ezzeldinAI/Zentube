@@ -34,8 +34,8 @@ export const videoVisibility = pgEnum("video_visibility", [
 
 export const videosTable = pgTable("videos", {
   id: uuid("id").primaryKey().defaultRandom(),
-  title: text("title").notNull(),
-  description: text("description"),
+  title: text("title").default("Zentube Review").notNull(),
+  description: text("description").default("ZenTube is the best platform because not owned by Google").notNull(),
   muxStatus: text("mux_status"),
   muxAssetId: text("mux_asset_id").unique(),
   muxUploadId: text("mux_upload_id").unique(),

@@ -1,25 +1,18 @@
 "use client";
 
-import { format } from "date-fns";
 import { Globe2Icon, LockIcon } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { InfiniteScroll } from "@/components/infinite-scroll";
+import type { Video } from "@/app/(data)/videos/columns";
+
+import { columns } from "@/app/(data)/videos/columns";
+import { DataTable } from "@/app/(data)/videos/data-table";
 import { DEFAULT_LIMIT } from "@/constants";
-import { snakeCaseToTitle } from "@/lib/utils";
-import { VideoThumbnail } from "@/modules/videos/ui/components/video-thumbnail";
+import { formatDuration, snakeCaseToTitle } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
 import { Skeleton } from "zentube/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "zentube/ui/table";
 
 export function VideoSection() {
   return (
@@ -31,179 +24,78 @@ export function VideoSection() {
   );
 }
 
-function VideoSectionSkeleton() {
+export function VideoSectionSkeleton() {
   return (
-    <>
+    <div className="space-y-4">
       <div className="border-y">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-6 w-[510px]">
-                Video
-              </TableHead>
-
-              <TableHead>
-                Visibility
-              </TableHead>
-
-              <TableHead>
-                Status
-              </TableHead>
-
-              <TableHead>
-                Date
-              </TableHead>
-
-              <TableHead className="text-right">
-                Views
-              </TableHead>
-
-              <TableHead className="text-right">
-                Comments
-              </TableHead>
-
-              <TableHead className="text-right pr-6">
-                Likes
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <TableRow key={index}>
-                <TableCell className="pl-6">
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-20 w-36" />
-                    <div className="flex flex-col gap-2">
-                      <Skeleton className="h-4 w-[100px]" />
-                      <Skeleton className="h-3 w-[150px]" />
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20" />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Skeleton className="h-4 w-12 ml-auto" />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Skeleton className="h-4 w-12 ml-auto" />
-                </TableCell>
-                <TableCell className="pr-6 text-right">
-                  <Skeleton className="h-4 w-12 ml-auto" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="p-4">
+          <Skeleton className="h-8 w-[200px]" />
+        </div>
+        <div className="p-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 mb-4">
+              <Skeleton className="h-20 w-36" />
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-3 w-[150px]" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
 function VideoSectionSuspense() {
-  const [videos, query] = trpc.studio.getMany.useSuspenseInfiniteQuery({
+  const router = useRouter();
+  const [videos] = trpc.studio.getMany.useSuspenseInfiniteQuery({
     limit: DEFAULT_LIMIT,
   }, {
     getNextPageParam: lastPage => lastPage.nextCursor,
   });
 
+  const transformed: Video[] = videos.pages.flatMap(page =>
+    page.items.map(video => ({
+      id: video.id,
+      thumbnail: video.thumbnailUrl ?? "/placeholder.svg",
+      duration: formatDuration(video.duration),
+      title: video.title,
+      description: video.description ?? "No description",
+      visibility: [
+        {
+          type: video.visibility,
+          label: snakeCaseToTitle(video.visibility),
+          icon: video.visibility === "private"
+            ? (
+                <LockIcon className="size-4" />
+              )
+            : (
+                <Globe2Icon className="size-4" />
+              ),
+        },
+      ],
+      status: snakeCaseToTitle(video.muxStatus || "error"),
+      date: video.createdAt.toISOString(),
+      views: 0, // add real data when available
+      comments: 0,
+      likes: 0,
+    })),
+  );
+
+  const handleRowClick = (video: Video) => {
+    router.push(`/studio/videos/${video.id}`);
+  };
+
   return (
-    <div>
-      <div className="border-y">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-6 w-[510px]">
-                Video
-              </TableHead>
-
-              <TableHead>
-                Visibility
-              </TableHead>
-
-              <TableHead>
-                Status
-              </TableHead>
-
-              <TableHead>
-                Date
-              </TableHead>
-
-              <TableHead className="text-right text-sm">
-                Views
-              </TableHead>
-
-              <TableHead className="text-right">
-                Comments
-              </TableHead>
-
-              <TableHead className="text-right pr-6">
-                Likes
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {videos.pages.flatMap(page => page.items).map(video => (
-              <Link href={`/studio/videos/${video.id}`} key={video.id} legacyBehavior>
-                <TableRow className="cursor-pointer">
-                  <TableCell className="pl-6 w-[510px]">
-                    <div className="flex items-center gap-4">
-                      <div className="relative aspect-video w-36 shrink-0">
-                        <VideoThumbnail imageUrl={video.thumbnailUrl} previewUrl={video.previewUrl} title={video.title} duration={video.duration} />
-                      </div>
-                      <div className="flex flex-col overflow-hidden gap-y-1">
-                        <span className="text-md font-semibold line-clamp-1 truncate max-w-[250px]">
-                          {video.title}
-                        </span>
-                        <span className="text-xs text-muted-foreground line-clamp-2 text-wrap truncate max-w-[250px]">
-                          {video.description ?? "No description"}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="flex items-center">
-                      {video.visibility === "private" ? <LockIcon className="size-4 mr-2" /> : <Globe2Icon className="size-4 mr-2" />}
-                      {snakeCaseToTitle(video.visibility)}
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="flex items-center">
-                      {snakeCaseToTitle(video.muxStatus || "error")}
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="text-sm truncate max-w-[150px]">
-                    {format(new Date(video.createdAt), "dd MMM yyyy")}
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    views
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    comments
-                  </TableCell>
-
-                  <TableCell className="text-right pr-6">
-                    likes
-                  </TableCell>
-                </TableRow>
-              </Link>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      <InfiniteScroll isManual hasNextPage={query.hasNextPage} isFetchingNextPage={query.isFetchingNextPage} fetchNextPage={query.fetchNextPage} />
+    <div className="space-y-4 p-6">
+      <DataTable columns={columns} data={transformed} onRowClick={handleRowClick} />
+      {/* <InfiniteScroll
+        isManual
+        hasNextPage={query.hasNextPage}
+        isFetchingNextPage={query.isFetchingNextPage}
+        fetchNextPage={query.fetchNextPage}
+      /> */}
     </div>
   );
 }

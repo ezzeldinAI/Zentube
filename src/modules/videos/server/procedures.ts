@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
 import { z } from "zod";
 
@@ -56,11 +56,29 @@ export const videosRouter = createTRPCRouter({
 
     return removedVideo;
   }),
+  removeMany: protectedProcedure.input(z.object({ ids: z.array(z.string().uuid()) })).mutation(async ({ ctx, input }) => {
+    const { id: userId } = ctx.user;
+
+    const removedVideos = await db.delete(videosTable).where(and(
+      inArray(videosTable.id, input.ids),
+      eq(videosTable.userId, userId),
+    )).returning();
+
+    return removedVideos;
+  }),
   update: protectedProcedure.input(videoUpdateSchema).mutation(async ({ ctx, input }) => {
     const { id: userId } = ctx.user;
 
     if (!input.id) {
       throw new TRPCError({ code: "BAD_REQUEST" });
+    }
+
+    if (!input.title) {
+      input.title = "ZenTube review";
+    }
+
+    if (!input.description) {
+      input.description = "ZenTube is the best platform because not owned by Google";
     }
 
     const [updatedVideo] = await db.update(videosTable).set({
@@ -101,7 +119,8 @@ export const videosRouter = createTRPCRouter({
 
     const [video] = await db.insert(videosTable).values({
       userId,
-      title: "Untitled",
+      title: "ZenTube review",
+      description: "ZenTube is the best platform because not owned by Google",
       muxStatus: "waiting",
       muxUploadId: upload.id,
     }).returning();

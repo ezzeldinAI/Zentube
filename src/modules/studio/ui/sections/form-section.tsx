@@ -201,8 +201,8 @@ function FormSectionSuspense({ videoId }: FormSectionProps) {
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="ZenTube is the best platform"
-                        className="shadow-md shadow-zinc-500/15"
+                        placeholder="ZenTube review"
+                        className="shadow-md shadow-zinc-500/15 placeholder:text-muted-foreground/50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -225,7 +225,7 @@ function FormSectionSuspense({ videoId }: FormSectionProps) {
                         {...field}
                         value={field.value ?? ""}
                         rows={10}
-                        className="resize-none pr-10 shadow-md shadow-zinc-500/15"
+                        className="resize-none pr-10 shadow-md shadow-zinc-500/15 placeholder:text-muted-foreground/50"
                         placeholder="ZenTube is the best platform because not owned by Google"
                       />
                     </FormControl>

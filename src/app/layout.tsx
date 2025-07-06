@@ -4,6 +4,7 @@ import {
   ClerkProvider,
 } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { cn } from "@/lib/utils";
 import { TRPCProvider } from "@/trpc/client";
@@ -26,20 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider afterSignOutUrl="/">
-      <html lang="en">
-        <body
-          className={cn(
-            "",
-            inter.className,
-          )}
-        >
-          <TRPCProvider>
-            <Toaster />
-            {children}
-          </TRPCProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.className)}>
+        <NuqsAdapter>
+          <ClerkProvider>
+            <TRPCProvider>
+              {children}
+              <Toaster />
+            </TRPCProvider>
+          </ClerkProvider>
+        </NuqsAdapter>
+      </body>
+    </html>
   );
 }
