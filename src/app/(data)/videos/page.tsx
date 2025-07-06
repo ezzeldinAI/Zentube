@@ -13,17 +13,15 @@ import type { Video } from "./columns";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
-export default function VideoPage() {
+function VideoPageContent() {
   const searchParams = useSearchParams();
   const page = Number.parseInt(searchParams.get("page") || "0");
   const pageSize = Number.parseInt(searchParams.get("pageSize") || "20");
 
-  const { data: videos, isLoading } = trpc.studio.getManyPaginated.useQuery(
-    {
-      page,
-      pageSize,
-    },
-  );
+  const { data: videos, isLoading } = trpc.studio.getManyPaginated.useQuery({
+    page,
+    pageSize,
+  });
 
   const transformed: Video[] = videos?.items.map(video => ({
     id: video.id,
@@ -56,14 +54,20 @@ export default function VideoPage() {
   }
 
   return (
+    <div className="space-y-4">
+      <DataTable
+        columns={columns}
+        data={transformed}
+        totalCount={videos?.total}
+      />
+    </div>
+  );
+}
+
+export default function VideoPage() {
+  return (
     <Suspense fallback={<VideoSectionSkeleton />}>
-      <div className="space-y-4">
-        <DataTable
-          columns={columns}
-          data={transformed}
-          totalCount={videos?.total}
-        />
-      </div>
+      <VideoPageContent />
     </Suspense>
   );
 }
